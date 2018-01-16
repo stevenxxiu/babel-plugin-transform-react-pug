@@ -1,7 +1,7 @@
 // @flow
 
 import type Context from '../context';
-import {transform} from 'babel-core';
+import {transform} from '@babel/core';
 import addLocToAst from './add-loc-to-ast';
 
 export default function parse(src: string, context: Context): Array<Statement> {

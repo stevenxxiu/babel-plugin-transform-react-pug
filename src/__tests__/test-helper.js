@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactServer from 'react-dom/server';
 import renderer from 'react-test-renderer';
-import {transformFileSync} from 'babel-core';
+import {transformFileSync} from '@babel/core';
 import transformReactPug from '../';
 
 export function testCompileError(filename) {
@@ -26,7 +26,7 @@ export function testRuntimeError(filename) {
         babelrc: false,
         plugins: [
           transformReactPug,
-          require('babel-plugin-transform-react-jsx'),
+          require('@babel/plugin-transform-react-jsx'),
         ],
       }).code;
       const m = {exports: {}};

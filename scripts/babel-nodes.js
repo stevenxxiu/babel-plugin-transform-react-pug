@@ -7,6 +7,7 @@ declare class AnyTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -23,11 +24,12 @@ declare class ArrayExpression {
 declare class ArrayPattern {
   type: 'ArrayPattern';
   loc: ?Location;
-  elements: $ReadOnlyArray<Expression>;
-  typeAnnotation: mixed;
+  elements: $ReadOnlyArray<PatternLike>;
   decorators: ?$ReadOnlyArray<Decorator>;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
 
   // alias: Pattern
+  // alias: PatternLike
   // alias: LVal
   // alias: BabelNode
 }
@@ -35,9 +37,10 @@ declare class ArrayPattern {
 declare class ArrayTypeAnnotation {
   type: 'ArrayTypeAnnotation';
   loc: ?Location;
-  elementType: mixed;
+  elementType: FlowType;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -46,9 +49,11 @@ declare class ArrowFunctionExpression {
   loc: ?Location;
   params: $ReadOnlyArray<LVal>;
   body: BlockStatement | Expression;
-  async: boolean;
-  returnType: ?mixed;
-  typeParameters: ?mixed;
+  async: ?boolean;
+  expression: ?boolean;
+  generator: ?boolean;
+  returnType: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Scopable
   // alias: Function
@@ -73,11 +78,13 @@ declare class AssignmentExpression {
 declare class AssignmentPattern {
   type: 'AssignmentPattern';
   loc: ?Location;
-  left: Identifier;
+  left: Identifier | ObjectPattern | ArrayPattern;
   right: Expression;
   decorators: ?$ReadOnlyArray<Decorator>;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
 
   // alias: Pattern
+  // alias: PatternLike
   // alias: LVal
   // alias: BabelNode
 }
@@ -142,8 +149,10 @@ declare class BooleanLiteral {
 declare class BooleanLiteralTypeAnnotation {
   type: 'BooleanLiteralTypeAnnotation';
   loc: ?Location;
+  value: ?boolean;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -152,6 +161,7 @@ declare class BooleanTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -171,7 +181,9 @@ declare class CallExpression {
   type: 'CallExpression';
   loc: ?Location;
   callee: Expression;
-  arguments: $ReadOnlyArray<Expression | SpreadElement>;
+  arguments: $ReadOnlyArray<Expression | SpreadElement | JSXNamespacedName>;
+  optional: ?true | false;
+  typeParameters: ?TypeParameterInstantiation | TSTypeParameterInstantiation;
 
   // alias: Expression
   // alias: BabelNode
@@ -180,17 +192,18 @@ declare class CallExpression {
 declare class CatchClause {
   type: 'CatchClause';
   loc: ?Location;
-  param: Identifier;
+  param: ?Identifier;
   body: BlockStatement;
 
   // alias: Scopable
+  // alias: BlockParent
   // alias: BabelNode
 }
 
 declare class ClassBody {
   type: 'ClassBody';
   loc: ?Location;
-  body: $ReadOnlyArray<ClassMethod | ClassProperty>;
+  body: $ReadOnlyArray<ClassMethod | ClassProperty | TSDeclareMethod | TSIndexSignature>;
 
   // alias: BabelNode
 }
@@ -198,14 +211,16 @@ declare class ClassBody {
 declare class ClassDeclaration {
   type: 'ClassDeclaration';
   loc: ?Location;
-  id: Identifier;
+  id: ?Identifier;
   superClass: ?Expression;
   body: ClassBody;
-  decorators: $ReadOnlyArray<Decorator>;
-  implements: ?mixed;
+  decorators: ?$ReadOnlyArray<Decorator>;
+  abstract: ?boolean;
+  declare: ?boolean;
+  implements: ?$ReadOnlyArray<TSExpressionWithTypeArguments | FlowClassImplements>;
   mixins: ?mixed;
-  superTypeParameters: ?mixed;
-  typeParameters: ?mixed;
+  superTypeParameters: ?TypeParameterInstantiation | TSTypeParameterInstantiation;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Scopable
   // alias: Class
@@ -221,11 +236,11 @@ declare class ClassExpression {
   id: ?Identifier;
   superClass: ?Expression;
   body: ClassBody;
-  decorators: $ReadOnlyArray<Decorator>;
-  implements: ?mixed;
+  decorators: ?$ReadOnlyArray<Decorator>;
+  implements: ?$ReadOnlyArray<TSExpressionWithTypeArguments | FlowClassImplements>;
   mixins: ?mixed;
-  superTypeParameters: ?mixed;
-  typeParameters: ?mixed;
+  superTypeParameters: ?TypeParameterInstantiation | TSTypeParameterInstantiation;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Scopable
   // alias: Class
@@ -237,8 +252,8 @@ declare class ClassExpression {
 declare class ClassImplements {
   type: 'ClassImplements';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterInstantiation;
 
   // alias: Flow
   // alias: BabelNode
@@ -247,16 +262,20 @@ declare class ClassImplements {
 declare class ClassMethod {
   type: 'ClassMethod';
   loc: ?Location;
-  kind: "get" | "set" | "method" | "constructor";
+  kind: ?"get" | "set" | "method" | "constructor";
   key: Expression;
   params: $ReadOnlyArray<LVal>;
   body: BlockStatement;
-  computed: boolean;
+  computed: ?boolean;
+  abstract: ?boolean;
+  access: ?"public" | "private" | "protected";
+  accessibility: ?"public" | "private" | "protected";
   async: ?boolean;
-  decorators: ?mixed;
+  decorators: ?$ReadOnlyArray<Decorator>;
   generator: ?boolean;
-  returnType: ?mixed;
-  typeParameters: ?mixed;
+  optional: ?boolean;
+  returnType: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Function
   // alias: Scopable
@@ -270,10 +289,14 @@ declare class ClassProperty {
   type: 'ClassProperty';
   loc: ?Location;
   key: mixed;
-  value: mixed;
-  typeAnnotation: mixed;
-  decorators: mixed;
-  computed: boolean;
+  value: ?Expression;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  decorators: ?$ReadOnlyArray<Decorator>;
+  computed: ?boolean;
+  abstract: ?boolean;
+  accessibility: ?"public" | "private" | "protected";
+  optional: ?boolean;
+  readonly: ?boolean;
 
   // alias: Property
   // alias: BabelNode
@@ -313,10 +336,39 @@ declare class DebuggerStatement {
 declare class DeclareClass {
   type: 'DeclareClass';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
-  extends: mixed;
-  body: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterInstantiation;
+  extends: ?$ReadOnlyArray<InterfaceExtends>;
+  body: ObjectTypeAnnotation;
+  mixins: ?$ReadOnlyArray<InterfaceExtends>;
+
+  // alias: Flow
+  // alias: FlowDeclaration
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class DeclareExportAllDeclaration {
+  type: 'DeclareExportAllDeclaration';
+  loc: ?Location;
+  source: StringLiteral;
+  exportKind: ?[ 'type', 'value' ];
+
+  // alias: Flow
+  // alias: FlowDeclaration
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class DeclareExportDeclaration {
+  type: 'DeclareExportDeclaration';
+  loc: ?Location;
+  declaration: ?Flow;
+  specifiers: ?$ReadOnlyArray<ExportSpecifier | ExportNamespaceSpecifier>;
+  source: ?StringLiteral;
+  default: ?boolean;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -328,7 +380,8 @@ declare class DeclareClass {
 declare class DeclareFunction {
   type: 'DeclareFunction';
   loc: ?Location;
-  id: mixed;
+  id: Identifier;
+  predicate: ?DeclaredPredicate;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -340,10 +393,11 @@ declare class DeclareFunction {
 declare class DeclareInterface {
   type: 'DeclareInterface';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
-  extends: mixed;
-  body: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  extends: ?InterfaceExtends;
+  body: ObjectTypeAnnotation;
+  mixins: ?$ReadOnlyArray<Flow>;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -355,8 +409,9 @@ declare class DeclareInterface {
 declare class DeclareModule {
   type: 'DeclareModule';
   loc: ?Location;
-  id: mixed;
-  body: mixed;
+  id: Identifier | StringLiteral;
+  body: BlockStatement;
+  kind: ?'CommonJS' | 'ES';
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -368,7 +423,21 @@ declare class DeclareModule {
 declare class DeclareModuleExports {
   type: 'DeclareModuleExports';
   loc: ?Location;
-  typeAnnotation: mixed;
+  typeAnnotation: TypeAnnotation;
+
+  // alias: Flow
+  // alias: FlowDeclaration
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class DeclareOpaqueType {
+  type: 'DeclareOpaqueType';
+  loc: ?Location;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  supertype: ?FlowType;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -380,9 +449,9 @@ declare class DeclareModuleExports {
 declare class DeclareTypeAlias {
   type: 'DeclareTypeAlias';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
-  right: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  right: FlowType;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -394,12 +463,22 @@ declare class DeclareTypeAlias {
 declare class DeclareVariable {
   type: 'DeclareVariable';
   loc: ?Location;
-  id: mixed;
+  id: Identifier;
 
   // alias: Flow
   // alias: FlowDeclaration
   // alias: Statement
   // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class DeclaredPredicate {
+  type: 'DeclaredPredicate';
+  loc: ?Location;
+  value: Flow;
+
+  // alias: Flow
+  // alias: FlowPredicate
   // alias: BabelNode
 }
 
@@ -463,15 +542,17 @@ declare class EmptyTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
 
-declare class ExistentialTypeParam {
-  type: 'ExistentialTypeParam';
+declare class ExistsTypeAnnotation {
+  type: 'ExistsTypeAnnotation';
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -490,7 +571,7 @@ declare class ExportAllDeclaration {
 declare class ExportDefaultDeclaration {
   type: 'ExportDefaultDeclaration';
   loc: ?Location;
-  declaration: FunctionDeclaration | ClassDeclaration | Expression;
+  declaration: FunctionDeclaration | TSDeclareFunction | ClassDeclaration | Expression;
 
   // alias: Statement
   // alias: Declaration
@@ -512,7 +593,7 @@ declare class ExportNamedDeclaration {
   type: 'ExportNamedDeclaration';
   loc: ?Location;
   declaration: ?Declaration;
-  specifiers: $ReadOnlyArray<ExportSpecifier>;
+  specifiers: $ReadOnlyArray<ExportSpecifier | ExportDefaultSpecifier | ExportNamespaceSpecifier>;
   source: ?StringLiteral;
 
   // alias: Statement
@@ -561,22 +642,6 @@ declare class File {
   // alias: BabelNode
 }
 
-declare class ForAwaitStatement {
-  type: 'ForAwaitStatement';
-  loc: ?Location;
-  left: VariableDeclaration | LVal;
-  right: Expression;
-  body: Statement;
-
-  // alias: Scopable
-  // alias: Statement
-  // alias: For
-  // alias: BlockParent
-  // alias: Loop
-  // alias: ForXStatement
-  // alias: BabelNode
-}
-
 declare class ForInStatement {
   type: 'ForInStatement';
   loc: ?Location;
@@ -599,6 +664,7 @@ declare class ForOfStatement {
   left: VariableDeclaration | LVal;
   right: Expression;
   body: Statement;
+  await: ?boolean;
 
   // alias: Scopable
   // alias: Statement
@@ -628,13 +694,14 @@ declare class ForStatement {
 declare class FunctionDeclaration {
   type: 'FunctionDeclaration';
   loc: ?Location;
-  id: Identifier;
+  id: ?Identifier;
   params: $ReadOnlyArray<LVal>;
   body: BlockStatement;
-  generator: boolean;
-  async: boolean;
-  returnType: ?mixed;
-  typeParameters: ?mixed;
+  generator: ?boolean;
+  async: ?boolean;
+  declare: ?boolean;
+  returnType: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Scopable
   // alias: Function
@@ -652,10 +719,10 @@ declare class FunctionExpression {
   id: ?Identifier;
   params: $ReadOnlyArray<LVal>;
   body: BlockStatement;
-  generator: boolean;
-  async: boolean;
-  returnType: ?mixed;
-  typeParameters: ?mixed;
+  generator: ?boolean;
+  async: ?boolean;
+  returnType: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: Scopable
   // alias: Function
@@ -669,20 +736,22 @@ declare class FunctionExpression {
 declare class FunctionTypeAnnotation {
   type: 'FunctionTypeAnnotation';
   loc: ?Location;
-  typeParameters: mixed;
-  params: mixed;
-  rest: mixed;
-  returnType: mixed;
+  typeParameters: ?TypeParameterDeclaration;
+  params: $ReadOnlyArray<FunctionTypeParam>;
+  rest: ?FunctionTypeParam;
+  returnType: FlowType;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
 declare class FunctionTypeParam {
   type: 'FunctionTypeParam';
   loc: ?Location;
-  name: mixed;
-  typeAnnotation: mixed;
+  name: ?Identifier;
+  typeAnnotation: FlowType;
+  optional: ?boolean;
 
   // alias: Flow
   // alias: BabelNode
@@ -691,10 +760,11 @@ declare class FunctionTypeParam {
 declare class GenericTypeAnnotation {
   type: 'GenericTypeAnnotation';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterInstantiation;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -703,10 +773,13 @@ declare class Identifier {
   loc: ?Location;
   name: string;
   decorators: ?$ReadOnlyArray<Decorator>;
-  typeAnnotation: ?mixed;
+  optional: ?boolean;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
 
   // alias: Expression
+  // alias: PatternLike
   // alias: LVal
+  // alias: TSEntityName
   // alias: BabelNode
 }
 
@@ -771,13 +844,23 @@ declare class ImportSpecifier {
   // alias: BabelNode
 }
 
+declare class InferredPredicate {
+  type: 'InferredPredicate';
+  loc: ?Location;
+
+  // alias: Flow
+  // alias: FlowPredicate
+  // alias: BabelNode
+}
+
 declare class InterfaceDeclaration {
   type: 'InterfaceDeclaration';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
-  extends: mixed;
-  body: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  extends: $ReadOnlyArray<InterfaceExtends>;
+  body: ObjectTypeAnnotation;
+  mixins: ?$ReadOnlyArray<InterfaceExtends>;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -789,8 +872,8 @@ declare class InterfaceDeclaration {
 declare class InterfaceExtends {
   type: 'InterfaceExtends';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterInstantiation;
 
   // alias: Flow
   // alias: BabelNode
@@ -799,9 +882,10 @@ declare class InterfaceExtends {
 declare class IntersectionTypeAnnotation {
   type: 'IntersectionTypeAnnotation';
   loc: ?Location;
-  types: mixed;
+  types: $ReadOnlyArray<FlowType>;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -809,7 +893,7 @@ declare class JSXAttribute {
   type: 'JSXAttribute';
   loc: ?Location;
   name: JSXIdentifier | JSXNamespacedName;
-  value: ?JSXElement | StringLiteral | JSXExpressionContainer;
+  value: ?JSXElement | JSXFragment | StringLiteral | JSXExpressionContainer;
 
   // alias: JSX
   // alias: Immutable
@@ -826,12 +910,21 @@ declare class JSXClosingElement {
   // alias: BabelNode
 }
 
+declare class JSXClosingFragment {
+  type: 'JSXClosingFragment';
+  loc: ?Location;
+
+  // alias: JSX
+  // alias: Immutable
+  // alias: BabelNode
+}
+
 declare class JSXElement {
   type: 'JSXElement';
   loc: ?Location;
   openingElement: JSXOpeningElement;
   closingElement: ?JSXClosingElement;
-  children: $ReadOnlyArray<JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement>;
+  children: $ReadOnlyArray<JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment>;
   selfClosing: mixed;
 
   // alias: JSX
@@ -845,7 +938,6 @@ declare class JSXEmptyExpression {
   loc: ?Location;
 
   // alias: JSX
-  // alias: Expression
   // alias: BabelNode
 }
 
@@ -859,13 +951,25 @@ declare class JSXExpressionContainer {
   // alias: BabelNode
 }
 
+declare class JSXFragment {
+  type: 'JSXFragment';
+  loc: ?Location;
+  openingFragment: JSXOpeningFragment;
+  closingFragment: JSXClosingFragment;
+  children: $ReadOnlyArray<JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment>;
+
+  // alias: JSX
+  // alias: Immutable
+  // alias: Expression
+  // alias: BabelNode
+}
+
 declare class JSXIdentifier {
   type: 'JSXIdentifier';
   loc: ?Location;
   name: string;
 
   // alias: JSX
-  // alias: Expression
   // alias: BabelNode
 }
 
@@ -876,7 +980,6 @@ declare class JSXMemberExpression {
   property: JSXIdentifier;
 
   // alias: JSX
-  // alias: Expression
   // alias: BabelNode
 }
 
@@ -896,6 +999,15 @@ declare class JSXOpeningElement {
   name: JSXIdentifier | JSXMemberExpression;
   attributes: $ReadOnlyArray<JSXAttribute | JSXSpreadAttribute>;
   selfClosing: boolean;
+
+  // alias: JSX
+  // alias: Immutable
+  // alias: BabelNode
+}
+
+declare class JSXOpeningFragment {
+  type: 'JSXOpeningFragment';
+  loc: ?Location;
 
   // alias: JSX
   // alias: Immutable
@@ -944,7 +1056,7 @@ declare class LabeledStatement {
 declare class LogicalExpression {
   type: 'LogicalExpression';
   loc: ?Location;
-  operator: '||' | '&&';
+  operator: '||' | '&&' | '??';
   left: Expression;
   right: Expression;
 
@@ -959,6 +1071,7 @@ declare class MemberExpression {
   object: Expression;
   property: Expression;
   computed: boolean;
+  optional: ?true | false;
 
   // alias: Expression
   // alias: LVal
@@ -968,8 +1081,8 @@ declare class MemberExpression {
 declare class MetaProperty {
   type: 'MetaProperty';
   loc: ?Location;
-  meta: string;
-  property: string;
+  meta: Identifier;
+  property: Identifier;
 
   // alias: Expression
   // alias: BabelNode
@@ -980,6 +1093,7 @@ declare class MixedTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -988,7 +1102,9 @@ declare class NewExpression {
   type: 'NewExpression';
   loc: ?Location;
   callee: Expression;
-  arguments: $ReadOnlyArray<Expression | SpreadElement>;
+  arguments: $ReadOnlyArray<Expression | SpreadElement | JSXNamespacedName>;
+  optional: ?true | false;
+  typeParameters: ?TypeParameterInstantiation | TSTypeParameterInstantiation;
 
   // alias: Expression
   // alias: BabelNode
@@ -1017,6 +1133,7 @@ declare class NullLiteralTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -1024,9 +1141,20 @@ declare class NullLiteralTypeAnnotation {
 declare class NullableTypeAnnotation {
   type: 'NullableTypeAnnotation';
   loc: ?Location;
-  typeAnnotation: mixed;
+  typeAnnotation: FlowType;
 
   // alias: Flow
+  // alias: FlowType
+  // alias: BabelNode
+}
+
+declare class NumberLiteralTypeAnnotation {
+  type: 'NumberLiteralTypeAnnotation';
+  loc: ?Location;
+  value: ?number;
+
+  // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -1035,6 +1163,7 @@ declare class NumberTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -1051,18 +1180,10 @@ declare class NumericLiteral {
   // alias: BabelNode
 }
 
-declare class NumericLiteralTypeAnnotation {
-  type: 'NumericLiteralTypeAnnotation';
-  loc: ?Location;
-
-  // alias: Flow
-  // alias: BabelNode
-}
-
 declare class ObjectExpression {
   type: 'ObjectExpression';
   loc: ?Location;
-  properties: $ReadOnlyArray<ObjectMethod | ObjectProperty | SpreadProperty>;
+  properties: $ReadOnlyArray<ObjectMethod | ObjectProperty | SpreadElement>;
 
   // alias: Expression
   // alias: BabelNode
@@ -1073,14 +1194,14 @@ declare class ObjectMethod {
   loc: ?Location;
   kind: "method" | "get" | "set";
   key: Expression;
-  params: mixed;
+  params: $ReadOnlyArray<LVal>;
   body: BlockStatement;
   computed: boolean;
   async: ?boolean;
   decorators: ?$ReadOnlyArray<Decorator>;
   generator: ?boolean;
-  returnType: ?mixed;
-  typeParameters: ?mixed;
+  returnType: ?TypeAnnotation | TSTypeAnnotation | Noop;
+  typeParameters: ?TypeParameterDeclaration | TSTypeParameterDeclaration | Noop;
 
   // alias: UserWhitespacable
   // alias: Function
@@ -1095,11 +1216,12 @@ declare class ObjectMethod {
 declare class ObjectPattern {
   type: 'ObjectPattern';
   loc: ?Location;
-  properties: $ReadOnlyArray<RestProperty | Property>;
-  typeAnnotation: mixed;
+  properties: $ReadOnlyArray<RestElement | ObjectProperty>;
   decorators: ?$ReadOnlyArray<Decorator>;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
 
   // alias: Pattern
+  // alias: PatternLike
   // alias: LVal
   // alias: BabelNode
 }
@@ -1108,7 +1230,7 @@ declare class ObjectProperty {
   type: 'ObjectProperty';
   loc: ?Location;
   key: Expression;
-  value: Expression;
+  value: Expression | PatternLike;
   computed: boolean;
   shorthand: boolean;
   decorators: ?$ReadOnlyArray<Decorator>;
@@ -1122,18 +1244,20 @@ declare class ObjectProperty {
 declare class ObjectTypeAnnotation {
   type: 'ObjectTypeAnnotation';
   loc: ?Location;
-  properties: mixed;
-  indexers: mixed;
-  callProperties: mixed;
+  properties: $ReadOnlyArray<ObjectTypeProperty | ObjectTypeSpreadProperty>;
+  indexers: ?$ReadOnlyArray<ObjectTypeIndexer>;
+  callProperties: ?$ReadOnlyArray<ObjectTypeCallProperty>;
+  exact: ?boolean;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
 declare class ObjectTypeCallProperty {
   type: 'ObjectTypeCallProperty';
   loc: ?Location;
-  value: mixed;
+  value: FlowType;
 
   // alias: Flow
   // alias: UserWhitespacable
@@ -1143,9 +1267,10 @@ declare class ObjectTypeCallProperty {
 declare class ObjectTypeIndexer {
   type: 'ObjectTypeIndexer';
   loc: ?Location;
-  id: mixed;
-  key: mixed;
-  value: mixed;
+  id: ?Identifier;
+  key: FlowType;
+  value: FlowType;
+  variance: ?Variance;
 
   // alias: Flow
   // alias: UserWhitespacable
@@ -1155,11 +1280,39 @@ declare class ObjectTypeIndexer {
 declare class ObjectTypeProperty {
   type: 'ObjectTypeProperty';
   loc: ?Location;
-  key: mixed;
-  value: mixed;
+  key: Identifier;
+  value: FlowType;
+  variance: ?Variance;
+  kind: ?'init' | 'get' | 'set';
+  optional: ?boolean;
 
   // alias: Flow
   // alias: UserWhitespacable
+  // alias: BabelNode
+}
+
+declare class ObjectTypeSpreadProperty {
+  type: 'ObjectTypeSpreadProperty';
+  loc: ?Location;
+  argument: FlowType;
+
+  // alias: Flow
+  // alias: UserWhitespacable
+  // alias: BabelNode
+}
+
+declare class OpaqueType {
+  type: 'OpaqueType';
+  loc: ?Location;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  supertype: ?FlowType;
+  impltype: FlowType;
+
+  // alias: Flow
+  // alias: FlowDeclaration
+  // alias: Statement
+  // alias: Declaration
   // alias: BabelNode
 }
 
@@ -1178,19 +1331,20 @@ declare class Program {
   loc: ?Location;
   body: $ReadOnlyArray<Statement>;
   directives: $ReadOnlyArray<Directive>;
+  sourceType: 'script' | 'module';
+  sourceFile: ?string;
 
   // alias: Scopable
   // alias: BlockParent
   // alias: Block
-  // alias: FunctionParent
   // alias: BabelNode
 }
 
 declare class QualifiedTypeIdentifier {
   type: 'QualifiedTypeIdentifier';
   loc: ?Location;
-  id: mixed;
-  qualification: mixed;
+  id: Identifier;
+  qualification: Identifier | QualifiedTypeIdentifier;
 
   // alias: Flow
   // alias: BabelNode
@@ -1211,19 +1365,11 @@ declare class RestElement {
   type: 'RestElement';
   loc: ?Location;
   argument: LVal;
-  typeAnnotation: mixed;
   decorators: ?$ReadOnlyArray<Decorator>;
+  typeAnnotation: ?TypeAnnotation | TSTypeAnnotation | Noop;
 
   // alias: LVal
-  // alias: BabelNode
-}
-
-declare class RestProperty {
-  type: 'RestProperty';
-  loc: ?Location;
-  argument: LVal;
-
-  // alias: UnaryLike
+  // alias: PatternLike
   // alias: BabelNode
 }
 
@@ -1256,15 +1402,6 @@ declare class SpreadElement {
   // alias: BabelNode
 }
 
-declare class SpreadProperty {
-  type: 'SpreadProperty';
-  loc: ?Location;
-  argument: Expression;
-
-  // alias: UnaryLike
-  // alias: BabelNode
-}
-
 declare class StringLiteral {
   type: 'StringLiteral';
   loc: ?Location;
@@ -1280,8 +1417,10 @@ declare class StringLiteral {
 declare class StringLiteralTypeAnnotation {
   type: 'StringLiteralTypeAnnotation';
   loc: ?Location;
+  value: ?string;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -1290,6 +1429,7 @@ declare class StringTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -1320,6 +1460,547 @@ declare class SwitchStatement {
   // alias: Statement
   // alias: BlockParent
   // alias: Scopable
+  // alias: BabelNode
+}
+
+declare class TSAnyKeyword {
+  type: 'TSAnyKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSArrayType {
+  type: 'TSArrayType';
+  loc: ?Location;
+  elementType: TSType;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSAsExpression {
+  type: 'TSAsExpression';
+  loc: ?Location;
+  expression: Expression;
+  typeAnnotation: TSType;
+
+  // alias: Expression
+  // alias: BabelNode
+}
+
+declare class TSBooleanKeyword {
+  type: 'TSBooleanKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSCallSignatureDeclaration {
+  type: 'TSCallSignatureDeclaration';
+  loc: ?Location;
+  typeParameters: ?TSTypeParameterDeclaration;
+  parameters: ?$ReadOnlyArray<Identifier | RestElement>;
+  typeAnnotation: ?TSTypeAnnotation;
+
+  // alias: TSTypeElement
+  // alias: BabelNode
+}
+
+declare class TSConstructSignatureDeclaration {
+  type: 'TSConstructSignatureDeclaration';
+  loc: ?Location;
+  typeParameters: ?TSTypeParameterDeclaration;
+  parameters: ?$ReadOnlyArray<Identifier | RestElement>;
+  typeAnnotation: ?TSTypeAnnotation;
+
+  // alias: TSTypeElement
+  // alias: BabelNode
+}
+
+declare class TSConstructorType {
+  type: 'TSConstructorType';
+  loc: ?Location;
+  typeParameters: ?TSTypeParameterDeclaration;
+  typeAnnotation: ?TSTypeAnnotation;
+  parameters: ?$ReadOnlyArray<Identifier | RestElement>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSDeclareFunction {
+  type: 'TSDeclareFunction';
+  loc: ?Location;
+  id: ?Identifier;
+  typeParameters: ?TSTypeParameterDeclaration | Noop;
+  params: $ReadOnlyArray<LVal>;
+  returnType: ?TSTypeAnnotation | Noop;
+  async: ?boolean;
+  declare: ?boolean;
+  generator: ?boolean;
+
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class TSDeclareMethod {
+  type: 'TSDeclareMethod';
+  loc: ?Location;
+  decorators: ?$ReadOnlyArray<Decorator>;
+  key: mixed;
+  typeParameters: ?TSTypeParameterDeclaration | Noop;
+  params: $ReadOnlyArray<LVal>;
+  returnType: ?TSTypeAnnotation | Noop;
+  abstract: ?boolean;
+  access: ?"public" | "private" | "protected";
+  accessibility: ?"public" | "private" | "protected";
+  async: ?boolean;
+  computed: ?boolean;
+  generator: ?boolean;
+  kind: ?"get" | "set" | "method" | "constructor";
+  optional: ?boolean;
+
+  // alias: BabelNode
+}
+
+declare class TSEnumDeclaration {
+  type: 'TSEnumDeclaration';
+  loc: ?Location;
+  id: Identifier;
+  members: $ReadOnlyArray<TSEnumMember>;
+  const: ?boolean;
+  declare: ?boolean;
+  initializer: ?Expression;
+
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class TSEnumMember {
+  type: 'TSEnumMember';
+  loc: ?Location;
+  id: Identifier | StringLiteral;
+  initializer: ?Expression;
+
+  // alias: BabelNode
+}
+
+declare class TSExportAssignment {
+  type: 'TSExportAssignment';
+  loc: ?Location;
+  expression: Expression;
+
+  // alias: Statement
+  // alias: BabelNode
+}
+
+declare class TSExpressionWithTypeArguments {
+  type: 'TSExpressionWithTypeArguments';
+  loc: ?Location;
+  expression: TSEntityName;
+  typeParameters: ?TSTypeParameterInstantiation;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSExternalModuleReference {
+  type: 'TSExternalModuleReference';
+  loc: ?Location;
+  expression: StringLiteral;
+
+  // alias: BabelNode
+}
+
+declare class TSFunctionType {
+  type: 'TSFunctionType';
+  loc: ?Location;
+  typeParameters: ?TSTypeParameterDeclaration;
+  typeAnnotation: ?TSTypeAnnotation;
+  parameters: ?$ReadOnlyArray<Identifier | RestElement>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSImportEqualsDeclaration {
+  type: 'TSImportEqualsDeclaration';
+  loc: ?Location;
+  id: Identifier;
+  moduleReference: TSEntityName | TSExternalModuleReference;
+  isExport: ?boolean;
+
+  // alias: Statement
+  // alias: BabelNode
+}
+
+declare class TSIndexSignature {
+  type: 'TSIndexSignature';
+  loc: ?Location;
+  parameters: $ReadOnlyArray<Identifier>;
+  typeAnnotation: ?TSTypeAnnotation;
+  readonly: ?boolean;
+
+  // alias: TSTypeElement
+  // alias: BabelNode
+}
+
+declare class TSIndexedAccessType {
+  type: 'TSIndexedAccessType';
+  loc: ?Location;
+  objectType: TSType;
+  indexType: TSType;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSInterfaceBody {
+  type: 'TSInterfaceBody';
+  loc: ?Location;
+  body: $ReadOnlyArray<TSTypeElement>;
+
+  // alias: BabelNode
+}
+
+declare class TSInterfaceDeclaration {
+  type: 'TSInterfaceDeclaration';
+  loc: ?Location;
+  id: Identifier;
+  typeParameters: ?TSTypeParameterDeclaration;
+  extends: ?$ReadOnlyArray<TSExpressionWithTypeArguments>;
+  body: TSInterfaceBody;
+  declare: ?boolean;
+
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class TSIntersectionType {
+  type: 'TSIntersectionType';
+  loc: ?Location;
+  types: $ReadOnlyArray<TSType>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSLiteralType {
+  type: 'TSLiteralType';
+  loc: ?Location;
+  literal: NumericLiteral | StringLiteral | BooleanLiteral;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSMappedType {
+  type: 'TSMappedType';
+  loc: ?Location;
+  typeParameter: TSTypeParameter;
+  typeAnnotation: ?TSType;
+  optional: ?boolean;
+  readonly: ?boolean;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSMethodSignature {
+  type: 'TSMethodSignature';
+  loc: ?Location;
+  key: Expression;
+  typeParameters: ?TSTypeParameterDeclaration;
+  parameters: ?$ReadOnlyArray<Identifier | RestElement>;
+  typeAnnotation: ?TSTypeAnnotation;
+  computed: ?boolean;
+  optional: ?boolean;
+
+  // alias: TSTypeElement
+  // alias: BabelNode
+}
+
+declare class TSModuleBlock {
+  type: 'TSModuleBlock';
+  loc: ?Location;
+  body: $ReadOnlyArray<Statement>;
+
+  // alias: BabelNode
+}
+
+declare class TSModuleDeclaration {
+  type: 'TSModuleDeclaration';
+  loc: ?Location;
+  id: Identifier | StringLiteral;
+  body: TSModuleBlock | TSModuleDeclaration;
+  declare: ?boolean;
+  global: ?boolean;
+
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class TSNamespaceExportDeclaration {
+  type: 'TSNamespaceExportDeclaration';
+  loc: ?Location;
+  id: Identifier;
+
+  // alias: Statement
+  // alias: BabelNode
+}
+
+declare class TSNeverKeyword {
+  type: 'TSNeverKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSNonNullExpression {
+  type: 'TSNonNullExpression';
+  loc: ?Location;
+  expression: Expression;
+
+  // alias: Expression
+  // alias: BabelNode
+}
+
+declare class TSNullKeyword {
+  type: 'TSNullKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSNumberKeyword {
+  type: 'TSNumberKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSObjectKeyword {
+  type: 'TSObjectKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSParameterProperty {
+  type: 'TSParameterProperty';
+  loc: ?Location;
+  parameter: Identifier | AssignmentPattern;
+  accessibility: ?'public' | 'private' | 'protected';
+  readonly: ?boolean;
+
+  // alias: LVal
+  // alias: BabelNode
+}
+
+declare class TSParenthesizedType {
+  type: 'TSParenthesizedType';
+  loc: ?Location;
+  typeAnnotation: TSType;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSPropertySignature {
+  type: 'TSPropertySignature';
+  loc: ?Location;
+  key: Expression;
+  typeAnnotation: ?TSTypeAnnotation;
+  initializer: ?Expression;
+  computed: ?boolean;
+  optional: ?boolean;
+  readonly: ?boolean;
+
+  // alias: TSTypeElement
+  // alias: BabelNode
+}
+
+declare class TSQualifiedName {
+  type: 'TSQualifiedName';
+  loc: ?Location;
+  left: TSEntityName;
+  right: Identifier;
+
+  // alias: TSEntityName
+  // alias: BabelNode
+}
+
+declare class TSStringKeyword {
+  type: 'TSStringKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSSymbolKeyword {
+  type: 'TSSymbolKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSThisType {
+  type: 'TSThisType';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTupleType {
+  type: 'TSTupleType';
+  loc: ?Location;
+  elementTypes: $ReadOnlyArray<TSType>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTypeAliasDeclaration {
+  type: 'TSTypeAliasDeclaration';
+  loc: ?Location;
+  id: Identifier;
+  typeParameters: ?TSTypeParameterDeclaration;
+  typeAnnotation: TSType;
+  declare: ?boolean;
+
+  // alias: Statement
+  // alias: Declaration
+  // alias: BabelNode
+}
+
+declare class TSTypeAnnotation {
+  type: 'TSTypeAnnotation';
+  loc: ?Location;
+  typeAnnotation: TSType;
+
+  // alias: BabelNode
+}
+
+declare class TSTypeAssertion {
+  type: 'TSTypeAssertion';
+  loc: ?Location;
+  typeAnnotation: TSType;
+  expression: Expression;
+
+  // alias: Expression
+  // alias: BabelNode
+}
+
+declare class TSTypeLiteral {
+  type: 'TSTypeLiteral';
+  loc: ?Location;
+  members: $ReadOnlyArray<TSTypeElement>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTypeOperator {
+  type: 'TSTypeOperator';
+  loc: ?Location;
+  typeAnnotation: TSType;
+  operator: ?string;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTypeParameter {
+  type: 'TSTypeParameter';
+  loc: ?Location;
+  constraint: ?TSType;
+  default: ?TSType;
+  name: ?string;
+
+  // alias: BabelNode
+}
+
+declare class TSTypeParameterDeclaration {
+  type: 'TSTypeParameterDeclaration';
+  loc: ?Location;
+  params: $ReadOnlyArray<TSTypeParameter>;
+
+  // alias: BabelNode
+}
+
+declare class TSTypeParameterInstantiation {
+  type: 'TSTypeParameterInstantiation';
+  loc: ?Location;
+  params: $ReadOnlyArray<TSType>;
+
+  // alias: BabelNode
+}
+
+declare class TSTypePredicate {
+  type: 'TSTypePredicate';
+  loc: ?Location;
+  parameterName: Identifier | TSThisType;
+  typeAnnotation: TSTypeAnnotation;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTypeQuery {
+  type: 'TSTypeQuery';
+  loc: ?Location;
+  exprName: TSEntityName;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSTypeReference {
+  type: 'TSTypeReference';
+  loc: ?Location;
+  typeName: TSEntityName;
+  typeParameters: ?TSTypeParameterInstantiation;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSUndefinedKeyword {
+  type: 'TSUndefinedKeyword';
+  loc: ?Location;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSUnionType {
+  type: 'TSUnionType';
+  loc: ?Location;
+  types: $ReadOnlyArray<TSType>;
+
+  // alias: TSType
+  // alias: BabelNode
+}
+
+declare class TSVoidKeyword {
+  type: 'TSVoidKeyword';
+  loc: ?Location;
+
+  // alias: TSType
   // alias: BabelNode
 }
 
@@ -1366,6 +2047,7 @@ declare class ThisTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -1384,10 +2066,9 @@ declare class ThrowStatement {
 declare class TryStatement {
   type: 'TryStatement';
   loc: ?Location;
-  block: mixed;
-  handler: ?mixed;
+  block: BlockStatement;
+  handler: ?CatchClause;
   finalizer: ?BlockStatement;
-  body: ?BlockStatement;
 
   // alias: Statement
   // alias: BabelNode
@@ -1396,18 +2077,19 @@ declare class TryStatement {
 declare class TupleTypeAnnotation {
   type: 'TupleTypeAnnotation';
   loc: ?Location;
-  types: mixed;
+  types: $ReadOnlyArray<FlowType>;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
 declare class TypeAlias {
   type: 'TypeAlias';
   loc: ?Location;
-  id: mixed;
-  typeParameters: mixed;
-  right: mixed;
+  id: Identifier;
+  typeParameters: ?TypeParameterDeclaration;
+  right: FlowType;
 
   // alias: Flow
   // alias: FlowDeclaration
@@ -1419,7 +2101,7 @@ declare class TypeAlias {
 declare class TypeAnnotation {
   type: 'TypeAnnotation';
   loc: ?Location;
-  typeAnnotation: mixed;
+  typeAnnotation: FlowType;
 
   // alias: Flow
   // alias: BabelNode
@@ -1428,8 +2110,8 @@ declare class TypeAnnotation {
 declare class TypeCastExpression {
   type: 'TypeCastExpression';
   loc: ?Location;
-  expression: mixed;
-  typeAnnotation: mixed;
+  expression: Expression;
+  typeAnnotation: TypeAnnotation;
 
   // alias: Flow
   // alias: ExpressionWrapper
@@ -1440,7 +2122,10 @@ declare class TypeCastExpression {
 declare class TypeParameter {
   type: 'TypeParameter';
   loc: ?Location;
-  bound: mixed;
+  bound: ?TypeAnnotation;
+  default: ?FlowType;
+  variance: ?Variance;
+  name: ?string;
 
   // alias: Flow
   // alias: BabelNode
@@ -1449,7 +2134,7 @@ declare class TypeParameter {
 declare class TypeParameterDeclaration {
   type: 'TypeParameterDeclaration';
   loc: ?Location;
-  params: mixed;
+  params: $ReadOnlyArray<TypeParameter>;
 
   // alias: Flow
   // alias: BabelNode
@@ -1458,7 +2143,7 @@ declare class TypeParameterDeclaration {
 declare class TypeParameterInstantiation {
   type: 'TypeParameterInstantiation';
   loc: ?Location;
-  params: mixed;
+  params: $ReadOnlyArray<FlowType>;
 
   // alias: Flow
   // alias: BabelNode
@@ -1467,16 +2152,17 @@ declare class TypeParameterInstantiation {
 declare class TypeofTypeAnnotation {
   type: 'TypeofTypeAnnotation';
   loc: ?Location;
-  argument: mixed;
+  argument: FlowType;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
 declare class UnaryExpression {
   type: 'UnaryExpression';
   loc: ?Location;
-  operator: 'void' | 'delete' | '!' | '+' | '-' | '++' | '--' | '~' | 'typeof';
+  operator: 'void' | 'throw' | 'delete' | '!' | '+' | '-' | '~' | 'typeof';
   argument: Expression;
   prefix: boolean;
 
@@ -1488,9 +2174,10 @@ declare class UnaryExpression {
 declare class UnionTypeAnnotation {
   type: 'UnionTypeAnnotation';
   loc: ?Location;
-  types: mixed;
+  types: $ReadOnlyArray<FlowType>;
 
   // alias: Flow
+  // alias: FlowType
   // alias: BabelNode
 }
 
@@ -1510,6 +2197,7 @@ declare class VariableDeclaration {
   loc: ?Location;
   kind: "var" | "let" | "const";
   declarations: $ReadOnlyArray<VariableDeclarator>;
+  declare: ?boolean;
 
   // alias: Statement
   // alias: Declaration
@@ -1530,6 +2218,7 @@ declare class VoidTypeAnnotation {
   loc: ?Location;
 
   // alias: Flow
+  // alias: FlowType
   // alias: FlowBaseAnnotation
   // alias: BabelNode
 }
@@ -1551,7 +2240,7 @@ declare class WhileStatement {
 declare class WithStatement {
   type: 'WithStatement';
   loc: ?Location;
-  object: mixed;
+  object: Expression;
   body: BlockStatement | Statement;
 
   // alias: Statement
@@ -1576,29 +2265,36 @@ type Flow = (
   | BooleanTypeAnnotation
   | ClassImplements
   | DeclareClass
+  | DeclareExportAllDeclaration
+  | DeclareExportDeclaration
   | DeclareFunction
   | DeclareInterface
   | DeclareModule
   | DeclareModuleExports
+  | DeclareOpaqueType
   | DeclareTypeAlias
   | DeclareVariable
+  | DeclaredPredicate
   | EmptyTypeAnnotation
-  | ExistentialTypeParam
+  | ExistsTypeAnnotation
   | FunctionTypeAnnotation
   | FunctionTypeParam
   | GenericTypeAnnotation
+  | InferredPredicate
   | InterfaceDeclaration
   | InterfaceExtends
   | IntersectionTypeAnnotation
   | MixedTypeAnnotation
   | NullLiteralTypeAnnotation
   | NullableTypeAnnotation
+  | NumberLiteralTypeAnnotation
   | NumberTypeAnnotation
-  | NumericLiteralTypeAnnotation
   | ObjectTypeAnnotation
   | ObjectTypeCallProperty
   | ObjectTypeIndexer
   | ObjectTypeProperty
+  | ObjectTypeSpreadProperty
+  | OpaqueType
   | QualifiedTypeIdentifier
   | StringLiteralTypeAnnotation
   | StringTypeAnnotation
@@ -1610,6 +2306,31 @@ type Flow = (
   | TypeParameter
   | TypeParameterDeclaration
   | TypeParameterInstantiation
+  | TypeofTypeAnnotation
+  | UnionTypeAnnotation
+  | VoidTypeAnnotation
+);
+
+type FlowType = (
+  | AnyTypeAnnotation
+  | ArrayTypeAnnotation
+  | BooleanLiteralTypeAnnotation
+  | BooleanTypeAnnotation
+  | EmptyTypeAnnotation
+  | ExistsTypeAnnotation
+  | FunctionTypeAnnotation
+  | GenericTypeAnnotation
+  | IntersectionTypeAnnotation
+  | MixedTypeAnnotation
+  | NullLiteralTypeAnnotation
+  | NullableTypeAnnotation
+  | NumberLiteralTypeAnnotation
+  | NumberTypeAnnotation
+  | ObjectTypeAnnotation
+  | StringLiteralTypeAnnotation
+  | StringTypeAnnotation
+  | ThisTypeAnnotation
+  | TupleTypeAnnotation
   | TypeofTypeAnnotation
   | UnionTypeAnnotation
   | VoidTypeAnnotation
@@ -1655,12 +2376,16 @@ type BabelNode = (
   | ContinueStatement
   | DebuggerStatement
   | DeclareClass
+  | DeclareExportAllDeclaration
+  | DeclareExportDeclaration
   | DeclareFunction
   | DeclareInterface
   | DeclareModule
   | DeclareModuleExports
+  | DeclareOpaqueType
   | DeclareTypeAlias
   | DeclareVariable
+  | DeclaredPredicate
   | Decorator
   | Directive
   | DirectiveLiteral
@@ -1668,7 +2393,7 @@ type BabelNode = (
   | DoWhileStatement
   | EmptyStatement
   | EmptyTypeAnnotation
-  | ExistentialTypeParam
+  | ExistsTypeAnnotation
   | ExportAllDeclaration
   | ExportDefaultDeclaration
   | ExportDefaultSpecifier
@@ -1677,7 +2402,6 @@ type BabelNode = (
   | ExportSpecifier
   | ExpressionStatement
   | File
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
@@ -1693,18 +2417,22 @@ type BabelNode = (
   | ImportDefaultSpecifier
   | ImportNamespaceSpecifier
   | ImportSpecifier
+  | InferredPredicate
   | InterfaceDeclaration
   | InterfaceExtends
   | IntersectionTypeAnnotation
   | JSXAttribute
   | JSXClosingElement
+  | JSXClosingFragment
   | JSXElement
   | JSXEmptyExpression
   | JSXExpressionContainer
+  | JSXFragment
   | JSXIdentifier
   | JSXMemberExpression
   | JSXNamespacedName
   | JSXOpeningElement
+  | JSXOpeningFragment
   | JSXSpreadAttribute
   | JSXSpreadChild
   | JSXText
@@ -1718,9 +2446,9 @@ type BabelNode = (
   | NullLiteral
   | NullLiteralTypeAnnotation
   | NullableTypeAnnotation
+  | NumberLiteralTypeAnnotation
   | NumberTypeAnnotation
   | NumericLiteral
-  | NumericLiteralTypeAnnotation
   | ObjectExpression
   | ObjectMethod
   | ObjectPattern
@@ -1729,22 +2457,76 @@ type BabelNode = (
   | ObjectTypeCallProperty
   | ObjectTypeIndexer
   | ObjectTypeProperty
+  | ObjectTypeSpreadProperty
+  | OpaqueType
   | ParenthesizedExpression
   | Program
   | QualifiedTypeIdentifier
   | RegExpLiteral
   | RestElement
-  | RestProperty
   | ReturnStatement
   | SequenceExpression
   | SpreadElement
-  | SpreadProperty
   | StringLiteral
   | StringLiteralTypeAnnotation
   | StringTypeAnnotation
   | Super
   | SwitchCase
   | SwitchStatement
+  | TSAnyKeyword
+  | TSArrayType
+  | TSAsExpression
+  | TSBooleanKeyword
+  | TSCallSignatureDeclaration
+  | TSConstructSignatureDeclaration
+  | TSConstructorType
+  | TSDeclareFunction
+  | TSDeclareMethod
+  | TSEnumDeclaration
+  | TSEnumMember
+  | TSExportAssignment
+  | TSExpressionWithTypeArguments
+  | TSExternalModuleReference
+  | TSFunctionType
+  | TSImportEqualsDeclaration
+  | TSIndexSignature
+  | TSIndexedAccessType
+  | TSInterfaceBody
+  | TSInterfaceDeclaration
+  | TSIntersectionType
+  | TSLiteralType
+  | TSMappedType
+  | TSMethodSignature
+  | TSModuleBlock
+  | TSModuleDeclaration
+  | TSNamespaceExportDeclaration
+  | TSNeverKeyword
+  | TSNonNullExpression
+  | TSNullKeyword
+  | TSNumberKeyword
+  | TSObjectKeyword
+  | TSParameterProperty
+  | TSParenthesizedType
+  | TSPropertySignature
+  | TSQualifiedName
+  | TSStringKeyword
+  | TSSymbolKeyword
+  | TSThisType
+  | TSTupleType
+  | TSTypeAliasDeclaration
+  | TSTypeAnnotation
+  | TSTypeAssertion
+  | TSTypeLiteral
+  | TSTypeOperator
+  | TSTypeParameter
+  | TSTypeParameterDeclaration
+  | TSTypeParameterInstantiation
+  | TSTypePredicate
+  | TSTypeQuery
+  | TSTypeReference
+  | TSUndefinedKeyword
+  | TSUnionType
+  | TSVoidKeyword
   | TaggedTemplateExpression
   | TemplateElement
   | TemplateLiteral
@@ -1787,9 +2569,7 @@ type Expression = (
   | Identifier
   | Import
   | JSXElement
-  | JSXEmptyExpression
-  | JSXIdentifier
-  | JSXMemberExpression
+  | JSXFragment
   | LogicalExpression
   | MemberExpression
   | MetaProperty
@@ -1802,6 +2582,9 @@ type Expression = (
   | SequenceExpression
   | StringLiteral
   | Super
+  | TSAsExpression
+  | TSNonNullExpression
+  | TSTypeAssertion
   | TaggedTemplateExpression
   | TemplateLiteral
   | ThisExpression
@@ -1817,6 +2600,14 @@ type Pattern = (
   | ObjectPattern
 );
 
+type PatternLike = (
+  | ArrayPattern
+  | AssignmentPattern
+  | Identifier
+  | ObjectPattern
+  | RestElement
+);
+
 type LVal = (
   | ArrayPattern
   | AssignmentPattern
@@ -1824,6 +2615,7 @@ type LVal = (
   | MemberExpression
   | ObjectPattern
   | RestElement
+  | TSParameterProperty
 );
 
 type Scopable = (
@@ -1834,7 +2626,6 @@ type Scopable = (
   | ClassExpression
   | ClassMethod
   | DoWhileStatement
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
@@ -1857,9 +2648,9 @@ type Function = (
 type BlockParent = (
   | ArrowFunctionExpression
   | BlockStatement
+  | CatchClause
   | ClassMethod
   | DoWhileStatement
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
@@ -1877,7 +2668,6 @@ type FunctionParent = (
   | FunctionDeclaration
   | FunctionExpression
   | ObjectMethod
-  | Program
 );
 
 type Pureish = (
@@ -1918,10 +2708,13 @@ type Statement = (
   | ContinueStatement
   | DebuggerStatement
   | DeclareClass
+  | DeclareExportAllDeclaration
+  | DeclareExportDeclaration
   | DeclareFunction
   | DeclareInterface
   | DeclareModule
   | DeclareModuleExports
+  | DeclareOpaqueType
   | DeclareTypeAlias
   | DeclareVariable
   | DoWhileStatement
@@ -1930,7 +2723,6 @@ type Statement = (
   | ExportDefaultDeclaration
   | ExportNamedDeclaration
   | ExpressionStatement
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
@@ -1939,8 +2731,17 @@ type Statement = (
   | ImportDeclaration
   | InterfaceDeclaration
   | LabeledStatement
+  | OpaqueType
   | ReturnStatement
   | SwitchStatement
+  | TSDeclareFunction
+  | TSEnumDeclaration
+  | TSExportAssignment
+  | TSImportEqualsDeclaration
+  | TSInterfaceDeclaration
+  | TSModuleDeclaration
+  | TSNamespaceExportDeclaration
+  | TSTypeAliasDeclaration
   | ThrowStatement
   | TryStatement
   | TypeAlias
@@ -1962,9 +2763,12 @@ type Immutable = (
   | BooleanLiteral
   | JSXAttribute
   | JSXClosingElement
+  | JSXClosingFragment
   | JSXElement
   | JSXExpressionContainer
+  | JSXFragment
   | JSXOpeningElement
+  | JSXOpeningFragment
   | JSXSpreadChild
   | JSXText
   | NullLiteral
@@ -1987,10 +2791,13 @@ type Class = (
 type Declaration = (
   | ClassDeclaration
   | DeclareClass
+  | DeclareExportAllDeclaration
+  | DeclareExportDeclaration
   | DeclareFunction
   | DeclareInterface
   | DeclareModule
   | DeclareModuleExports
+  | DeclareOpaqueType
   | DeclareTypeAlias
   | DeclareVariable
   | ExportAllDeclaration
@@ -1999,6 +2806,12 @@ type Declaration = (
   | FunctionDeclaration
   | ImportDeclaration
   | InterfaceDeclaration
+  | OpaqueType
+  | TSDeclareFunction
+  | TSEnumDeclaration
+  | TSInterfaceDeclaration
+  | TSModuleDeclaration
+  | TSTypeAliasDeclaration
   | TypeAlias
   | VariableDeclaration
 );
@@ -2020,19 +2833,27 @@ type Conditional = (
 
 type FlowDeclaration = (
   | DeclareClass
+  | DeclareExportAllDeclaration
+  | DeclareExportDeclaration
   | DeclareFunction
   | DeclareInterface
   | DeclareModule
   | DeclareModuleExports
+  | DeclareOpaqueType
   | DeclareTypeAlias
   | DeclareVariable
   | InterfaceDeclaration
+  | OpaqueType
   | TypeAlias
+);
+
+type FlowPredicate = (
+  | DeclaredPredicate
+  | InferredPredicate
 );
 
 type Loop = (
   | DoWhileStatement
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
@@ -2073,28 +2894,34 @@ type ExpressionWrapper = (
 );
 
 type For = (
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
   | ForStatement
 );
 
 type ForXStatement = (
-  | ForAwaitStatement
   | ForInStatement
   | ForOfStatement
+);
+
+type TSEntityName = (
+  | Identifier
+  | TSQualifiedName
 );
 
 type JSX = (
   | JSXAttribute
   | JSXClosingElement
+  | JSXClosingFragment
   | JSXElement
   | JSXEmptyExpression
   | JSXExpressionContainer
+  | JSXFragment
   | JSXIdentifier
   | JSXMemberExpression
   | JSXNamespacedName
   | JSXOpeningElement
+  | JSXOpeningFragment
   | JSXSpreadAttribute
   | JSXSpreadChild
   | JSXText
@@ -2106,6 +2933,7 @@ type UserWhitespacable = (
   | ObjectTypeCallProperty
   | ObjectTypeIndexer
   | ObjectTypeProperty
+  | ObjectTypeSpreadProperty
 );
 
 type ObjectMember = (
@@ -2114,10 +2942,46 @@ type ObjectMember = (
 );
 
 type UnaryLike = (
-  | RestProperty
   | SpreadElement
-  | SpreadProperty
   | UnaryExpression
+);
+
+type TSType = (
+  | TSAnyKeyword
+  | TSArrayType
+  | TSBooleanKeyword
+  | TSConstructorType
+  | TSExpressionWithTypeArguments
+  | TSFunctionType
+  | TSIndexedAccessType
+  | TSIntersectionType
+  | TSLiteralType
+  | TSMappedType
+  | TSNeverKeyword
+  | TSNullKeyword
+  | TSNumberKeyword
+  | TSObjectKeyword
+  | TSParenthesizedType
+  | TSStringKeyword
+  | TSSymbolKeyword
+  | TSThisType
+  | TSTupleType
+  | TSTypeLiteral
+  | TSTypeOperator
+  | TSTypePredicate
+  | TSTypeQuery
+  | TSTypeReference
+  | TSUndefinedKeyword
+  | TSUnionType
+  | TSVoidKeyword
+);
+
+type TSTypeElement = (
+  | TSCallSignatureDeclaration
+  | TSConstructSignatureDeclaration
+  | TSIndexSignature
+  | TSMethodSignature
+  | TSPropertySignature
 );
 
 type JSXValue = JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement;

@@ -1,9 +1,9 @@
 import {writeFileSync} from 'fs';
 import {inspect} from 'util';
-import * as types from 'babel-types';
+import * as types from '@babel/types';
 
 function isKeyword(n) {
-  return n === 'extends' || n === 'arguments' || n === 'static';
+  return n === 'extends' || n === 'arguments' || n === 'static' || n === 'default';
 }
 function getTypeFromValidator(validator) {
   if (validator.type) {
